@@ -152,7 +152,36 @@ or bidirectional filter paths.
   was not repeated.
 
 ## Section D: DAX & Business Calculations
-*(to be completed)*
+
+12 DAX measures were created across three levels of complexity. Six of the
+most important are explained below.
+
+### 1. Total Students
+`Total Students = DISTINCTCOUNT(FactAssessment[id_student])`
+Calculates the number of unique students represented in the assessment
+data. This is used as the base for several rate calculations (e.g. Pass
+Rate %) and gives management an immediate sense of scale on the Executive
+Overview page. DISTINCTCOUNT is used rather than COUNTROWS because a
+student can appear multiple times (once per assessment).
+
+### 2. Pass Rate %
+`Pass Rate % = DIVIDE([Pass Count], [Total Students], 0)`
+Calculates the proportion of students whose final result was "Pass",
+relative to the total number of students. DIVIDE is used instead of the /
+operator to safely return 0 rather than an error when the denominator is
+zero (e.g. in an empty filter context). This measure is central to the
+Executive Overview page as a headline KPI, and changes dynamically based on
+whichever module, presentation, or demographic slicer is applied.
+
+### 3. Average Clicks per Student
+`Average Clicks per Student = DIVIDE([Total Clicks], DISTINCTCOUNT(FactVLEEngagement[id_student]), 0)`
+Calculates average VLE engagement per student, used to investigate whether
+engagement level relates to outcome. This measure responds to filter
+context - for example, filtering to only "Withdrawn" students shows their
+average engagement compared to the whole cohort. Used on the Advanced/
+Diagnostic Analysis page.
+
+### 4. Distinction Rate %
 
 ## Section E: Dashboards
 *(to be completed)*
