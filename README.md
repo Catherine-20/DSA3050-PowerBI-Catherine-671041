@@ -88,7 +88,85 @@ Transformation: Used Replace Values to replace blank imd_band entries with
 "Unknown".
 Reason: Leaving nulls in a categorical field causes them to be excluded or
 misrepresented in visuals; an explicit "Unknown" category preserves the row
-while making the missingness
+while making the missingness visible and analyzable.
+Result: imd_band now contains no blank values; all rows are usable in
+demographic analysis.
+
+**3. Splitting code_presentation into year and semester**
+Problem: code_presentation packed two pieces of information into one text
+value (e.g. "2013J" = year 2013, October presentation), making it
+unsuitable for time-based analysis or a date dimension.
+Transformation: Split the column by number of characters (4) into
+PresentationYear and PresentationSemesterCode, then added a custom column,
+PresentationStartMonth, translating "B" to "February" and "J" to "October".
+Reason: Separates year and semester so they can be used independently as
+filters, and produces a human-readable presentation start period.
+Result: New columns PresentationYear, PresentationSemesterCode, and
+PresentationStartMonth are available for time-based grouping and slicing.
+
+**4. Creating RegistrationStatus from date_unregistration**
+Problem: date_unregistration in studentRegistration was blank for most
+students, which is meaningful (they did not withdraw) but not immediately
+usable as a category in visuals.
+Transformation: Added a custom column, RegistrationStatus, using
+if [date_unregistration] = null then "Completed/Active" else "Withdrawn".
+Reason: Converts an implicit null-based meaning into an explicit category
+that can be used directly as a slicer or breakdown in the dashboard.
+Result: Every row now has a clear RegistrationStatus of "Completed/Active"
+or "Withdrawn".
+
+**5. Flagging banked (carried-over) assessment scores**
+Problem: studentAssessment contains an is_banked flag (1/0) indicating a
+score was carried over from a previous attempt rather than newly earned,
+which is not obvious from the raw numeric flag.
+Transformation: Added a custom column, ScoreType, using
+if [is_banked] = 1 then "Banked (Carried Over)" else "New Submission".
+Reason: Distinguishes genuinely new performance data from carried-over
+scores, which matters for accurate performance analysis.
+Result: A readable ScoreType category is available for filtering and
+analysis of assessment performance.
+
+**6. Standardizing activity_type text in vle**
+Problem: Text categories in the vle table's activity_type field could
+contain inconsistent casing, which would cause the same activity type to be
+treated as separate categories.
+Transformation: Standardized the text casing of activity_type.
+Reason: Ensures each activity type is grouped as a single consistent
+category rather than being split by casing differences.
+Result: activity_type values are consistent and ready for accurate grouping.
+
+**7. Deduplicating studentInfo into DimStudent**
+Problem: studentInfo contained one row per student per module presentation,
+so a student taking multiple courses appeared multiple times - unsuitable
+for a dimension table, which requires one row per entity.
+Transformation: Referenced studentInfo into a new query, DimStudent, kept
+only demographic columns (gender, region, highest_education, imd_band,
+age_band, disability), and removed duplicates based on id_student only
+(after an initial attempt using multiple columns still left duplicate
+students, since other columns could still differ between their rows).
+Reason: A dimension table must have a unique row per entity to support
+unambiguous relationships in the data model.
+Result: DimStudent now contains exactly one row per unique student.
+
+**8. Creating a CourseKey in DimCourse**
+Problem: code_module alone is not unique in the courses table, since the
+same module (e.g. "AAA") is offered across multiple presentations
+(years/semesters), which caused a relationship error when first attempting
+to build the data model.
+Transformation: Added a custom column, CourseKey, concatenating
+code_module & "_" & code_presentation, and added the same column to the
+fact tables.
+Reason: Provides a single unique key that identifies a specific course
+offering, needed to build a valid one-to-many relationship between
+DimCourse and the fact tables.
+Result: DimCourse has a unique CourseKey per row, enabling correct
+relationships in the data model (see Section C).
+
+### Note on studentVle.csv
+The raw studentVle.csv file (~443MB, 10+ million rows of daily VLE click
+interactions) exceeds GitHub's file size limits and was not uploaded in raw
+form. It was imported directly into Power BI and aggregated as described in
+transformation 1 above before being loaded into the data model.
 
 ## Section C: Data Modelling
 
@@ -183,7 +261,6 @@ Diagnostic Analysis page.
 
 ### 4. Distinction Rate %
 
-## Section E: Dashboards
 ## Section E: Professional Power BI Dashboards
 
 Three report pages were built, moving from a high-level overview to
