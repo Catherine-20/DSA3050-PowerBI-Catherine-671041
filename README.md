@@ -184,7 +184,41 @@ Diagnostic Analysis page.
 ### 4. Distinction Rate %
 
 ## Section E: Dashboards
-*(to be completed)*
+## Section E: Professional Power BI Dashboards
+
+Three report pages were built, moving from a high-level overview to
+progressively deeper analysis:
+
+### Page 1: Executive Overview
+KPI cards for Total Students, Pass Rate %, Withdrawal Rate %, and Average
+Clicks per Student give an immediate summary of performance. A column
+chart breaks down final results (Pass/Fail/Withdrawn/Distinction), and a
+donut chart shows student distribution across modules. Module and
+presentation-year slicers let a manager quickly narrow the view.
+
+### Page 2: Detailed Analysis
+A sortable table compares Pass Rate %, Distinction Rate %, and Withdrawal
+Rate % across every module. A column chart breaks down Pass Rate % by age
+band to surface demographic performance differences. A scatter chart plots
+Average Clicks per Student against Average Score by module, visually
+testing whether engagement relates to performance. An IMD band slicer
+allows filtering by deprivation index across the whole page.
+
+### Page 3: Advanced/Diagnostic Analysis
+This page investigates why outcomes occur rather than just what happened.
+A table cross-references IMD band and age band against Withdrawal Rate %
+and Average Clicks per Student, to see where withdrawal concentrates. A
+stacked column chart shows RegistrationStatus by module. A bar chart
+compares Pass Rate % between students flagged as "Above Average" vs "Below
+Average" engagement (using the High Engagement Flag measure), directly
+testing the relationship between engagement and outcome. A ranking table
+lists students by Score Rank to identify top and bottom performers.
+
+### Interactivity
+All three pages use slicers (module, presentation year, IMD band) that
+cross-filter every visual on their page. Visuals share the model's
+relationships, so selecting a module or demographic group in one visual
+filters related visuals automatically.
 
 ## Section F: Repository Notes
 *(to be completed)*
