@@ -65,10 +65,91 @@ in a course?
 ---
 
 ## Section B: Power Query – Data Cleaning & Transformation
-*(to be completed)*
+
+At least 8 significant transformations were carried out, documented below as
+Problem -> Transformation -> Reason -> Result.
+
+**1. Aggregating studentVle.csv (10+ million rows)**
+Problem: studentVle.csv contained over 10 million rows of daily click-level
+VLE interaction data - far too large and granular to load directly into
+Power BI or to be analytically useful at that grain.
+Transformation: Removed the id_site column, then used Group By to aggregate
+on code_module, code_presentation, and id_student, summing sum_click into a
+new TotalClicks column.
+Reason: Reduces the data to a meaningful analytical grain (engagement per
+student per course) while making the file practical to load and model.
+Result: A new query, FactVLEEngagement, with one row per student per course
+presentation and a TotalClicks measure.
+
+**2. Handling missing imd_band values**
+Problem: The imd_band field (deprivation index) in studentInfo contained
+blank/null values for some students.
+Transformation: Used Replace Values to replace blank imd_band entries with
+"Unknown".
+Reason: Leaving nulls in a categorical field causes them to be excluded or
+misrepresented in visuals; an explicit "Unknown" category preserves the row
+while making the missingness
 
 ## Section C: Data Modelling
-*(to be completed)*
+
+### Fact tables
+Two fact tables were used rather than one large flat table:
+
+- **FactAssessment** (from studentAssessment.csv, merged with assessments.csv):
+  contains one row per assessment attempt (score, submission date, whether the
+  score was banked/carried over). This is the natural transactional grain of
+  the dataset - each row is a real event (a student submitting or being scored
+  on an assessment).
+- **FactVLEEngagement** (aggregated from studentVle.csv): contains one row per
+  student per course presentation, with total VLE clicks and final course
+  result. The raw studentVle.csv contained 10+ million daily click records,
+  which was too large to load meaningfully into Power BI, so it was
+  aggregated in Power Query (Group By: code_module, code_presentation,
+  id_student, summing sum_click) before loading. This is documented in
+  Section B.
+
+Using two fact tables at different grains (assessment-level vs
+student-course-level) allowed both a fine-grained view of performance and a
+broader view of engagement, sharing the same dimensions.
+
+### Dimension tables
+- **DimStudent**: one row per unique student (gender, region, highest
+  education, IMD band, age band, disability). Built by referencing
+  studentInfo and removing duplicates on id_student only, since the source
+  table originally had one row per student per course.
+- **DimCourse**: one row per course module/presentation (code_module,
+  code_presentation, module length), with a concatenated CourseKey
+  (code_module & "_" & code_presentation) added because code_module alone
+  is not unique - the same module (e.g. "AAA") repeats across multiple
+  presentations (years/semesters).
+- **DimDate**: a small custom date dimension representing the four course
+  presentation periods in the dataset (2013B, 2013J, 2014B, 2014J), since
+  the raw data does not contain calendar dates, only day-offsets and
+  presentation codes.
+
+### Relationships
+- DimStudent to FactVLEEngagement: one-to-many, single direction, on id_student
+- DimStudent to FactAssessment: one-to-many, single direction, on id_student
+- DimCourse to FactVLEEngagement: one-to-many, single direction, on CourseKey
+- DimCourse to FactAssessment: one-to-many, single direction, on CourseKey
+- DimDate to FactVLEEngagement: one-to-many, single direction, on
+  PresentationCode / code_presentation
+
+All relationships are one-to-many with a single cross-filter direction, so
+each dimension filters its connected fact tables without creating ambiguous
+or bidirectional filter paths.
+
+### Modelling challenges encountered
+- code_module alone could not be used as a relationship key for DimCourse,
+  since the same module code repeats across multiple presentations. This was
+  resolved by creating a concatenated CourseKey column in both DimCourse and
+  the fact tables.
+- FactAssessment does not include code_presentation, so it was not connected
+  to DimDate. Only FactVLEEngagement is connected to DimDate. This was a
+  deliberate scope decision rather than an oversight: FactVLEEngagement
+  already supports the time-based (presentation-period) analysis needed for
+  this project, so a full merge to add code_presentation into FactAssessment
+  was not repeated.
 
 ## Section D: DAX & Business Calculations
 *(to be completed)*
