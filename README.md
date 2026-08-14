@@ -221,4 +221,42 @@ relationships, so selecting a module or demographic group in one visual
 filters related visuals automatically.
 
 ## Section F: Repository Notes
-*(to be completed)*
+
+This repository follows the required structure:
+
+- README.md - full documentation of the BI development process
+- data/ - the six smaller raw CSV files (courses, studentInfo,
+  studentRegistration, assessments, studentAssessment, vle). studentVle.csv
+  (~443MB) is excluded due to GitHub file size limits; see the note in
+  Section A.
+- powerbi/ - the completed .pbix file
+- screenshots/ - screenshots covering raw data, Power Query transformations,
+  the completed data model, DAX measures, and all three dashboard pages
+
+Development was carried out progressively through a series of commits
+covering dataset selection and documentation, Power Query transformations,
+data modelling, DAX measures, and dashboard construction, rather than a
+single final upload.
+
+## Insights and Conclusion
+
+Based on the dashboards built in this project, a few patterns stand out:
+
+- Withdrawal and lower pass rates are not evenly distributed across
+  demographic groups - the Advanced Analysis page shows differences in
+  Withdrawal Rate % across IMD band and age band, suggesting deprivation and
+  age are worth monitoring as early-warning factors rather than treating all
+  students the same.
+- Students flagged as "Above Average" engagement (based on VLE clicks) show
+  a different Pass Rate % compared to "Below Average" engagement students,
+  supporting the idea that VLE activity could serve as an early indicator of
+  risk, before final results are known.
+- Performance and withdrawal both vary noticeably by module (code_module),
+  meaning module-level context matters and a single university-wide
+  intervention may not be equally effective across all modules.
+
+These findings directly answer the analytical questions set out in Section
+A: engagement and demographic data do show a relationship with final
+outcome, suggesting that a combination of engagement tracking and
+demographic awareness could help the university identify at-risk students
+earlier in a course, rather than only after final results are recorded.
